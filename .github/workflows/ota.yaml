@@ -27,8 +27,14 @@ jobs:
             if [[ "$name" =~ $HOTFIX_LABEL_REGEX ]]; then
               MATCHED=true
               MATCHED_VERSION=$name
-              CLEAN_VERSION=$(echo "$label_name" | sed -E 's/^v([0-9]+\.[0-9]+\.[0-9]+)-hotfix\.[0-9]+$/\1/')
-              CLEAN_GENERIC_VERSION=$(echo "$version" | sed -E 's/([0-9]+\.[0-9]+)\.[0-9]+/\1.x/')
+              clean_version=$(echo "$name" | sed -E 's/^v([0-9]+\.[0-9]+\.[0-9]+)-hotfix\.[0-9]+$/\1/')
+              clean_generic_version=$(echo "$clean_version" | sed -E 's/([0-9]+\.[0-9]+)\.[0-9]+/\1.x/')
+
+              echo "CLEAN VERSION: $clean_version"
+              echo "CLEAN GENERIC VERSION: $clean_generic_version"
+              
+              CLEAN_VERSION=$clean_version
+              CLEAN_GENERIC_VERSION=$clean_generic_version
               break
             fi
           done
