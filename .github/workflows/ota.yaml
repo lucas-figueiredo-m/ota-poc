@@ -63,13 +63,15 @@ jobs:
           git fetch origin $BRANCH_NAME || true
 
           if git rev-parse --verify --quiet origin/$BRANCH_NAME; then
-            echo "Branch $BRANCH_NAME exists"
             echo "branch_exists=true" >> $GITHUB_OUTPUT
             echo "branch_name=$BRANCH_NAME" >> $GITHUB_OUTPUT
             echo "source_branch=$SOURCE_BRANCH" >> $GITHUB_OUTPUT
+            echo "Branch $BRANCH_NAME exists"
           else
             echo "Branch $BRANCH_NAME does not exist"
             echo "branch_exists=false" >> $GITHUB_OUTPUT
+
+            exit 1
           fi
 
       - name: Fetch and checkout release branch
@@ -88,7 +90,7 @@ jobs:
           SOURCE_BRANCH=${{ steps.check_label.outputs.source_branch }}
           BRANCH_NAME=${{ steps.check_label.outputs.branch_name }}
 
-           echo "Getting commits unique to $SOURCE_BRANCH..."
+          echo "Getting commits unique to $SOURCE_BRANCH..."
           COMMITS=$(git rev-list --reverse origin/$RELEASE_BRANCH..origin/$SOURCE_BRANCH)
 
           if [[ -z "$COMMITS" ]]; then
