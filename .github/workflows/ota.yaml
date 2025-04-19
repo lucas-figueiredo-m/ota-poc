@@ -111,6 +111,12 @@ jobs:
           printf "|%-12s|%-52s|\n" "------------" "----------------------------------------------------"
 
           for commit in $COMMITS; do
+            # Skip merge commits
+            if git log -1 --pretty=%P "$commit" | grep -q " "; then
+              echo "⚠️ Skipping merge commit $commit"
+              continue
+            fi
+
             git cherry-pick "$commit" || {
               echo "❌ Conflict while cherry-picking $commit. Aborting."
               exit 1
