@@ -76,20 +76,20 @@ jobs:
           fi
 
       - name: Fetch and checkout release branch
-        if: steps.check_label.outputs.matched == 'true'
+        if: steps.check_label.outputs.matched == 'true' && steps.check_release_branch.outputs.branch_exists == 'true'
         run: |
-          RELEASE_BRANCH="${{ steps.check_label.outputs.branch_name }}"
+          RELEASE_BRANCH="${{ steps.check_release_branch.outputs.branch_name }}"
 
           echo "Fetching release branch $RELEASE_BRANCH..."
 
           git fetch origin "$RELEASE_BRANCH"
           git checkout "$RELEASE_BRANCH"
 
-      - name: Cherry-pick commits from ${{ steps.check_label.outputs.source_branch }} into ${{ steps.check_label.outputs.branch_name }}
-        if: steps.check_label.outputs.matched == 'true' && steps.check_label.outputs.branch_exists == 'true'
+      - name: Cherry-pick commits from ${{ steps.check_release_branch.outputs.source_branch }} into ${{ steps.check_release_branch.outputs.branch_name }}
+        if: steps.check_label.outputs.matched == 'true' && steps.check_release_branch.outputs.branch_exists == 'true'
         run: |
-          SOURCE_BRANCH="${{ steps.check_label.outputs.source_branch }}"
-          BRANCH_NAME="${{ steps.check_label.outputs.branch_name }}"
+          SOURCE_BRANCH="${{ steps.check_release_branch.outputs.source_branch }}"
+          BRANCH_NAME="${{ steps.check_release_branch.outputs.branch_name }}"
 
           echo "Getting commits unique to $SOURCE_BRANCH..."
           COMMITS=$(git rev-list --reverse origin/$RELEASE_BRANCH..origin/$SOURCE_BRANCH)
@@ -117,6 +117,6 @@ jobs:
           git push origin "$RELEASE_BRANCH"
 
       - name: Run CircleCI workflow
-        if: steps.check_label.outputs.matched == 'true' && steps.check_label.outputs.branch_exists == 'true'
+        if: steps.check_label.outputs.matched == 'true' && steps.check_release_branch.outputs.branch_exists == 'true'
         run: |
           echo "🔥 Running CircleCI workflow"
