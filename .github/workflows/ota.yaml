@@ -76,7 +76,7 @@ jobs:
           fi
 
       - name: Fetch and checkout release branch
-        if: steps.check_label.outputs.matched == 'true' && steps.check_label.outputs.branch_exists == 'true'
+        if: steps.check_label.outputs.matched == 'true'
         run: |
           RELEASE_BRANCH="${{ steps.check_label.outputs.branch_name }}"
 
