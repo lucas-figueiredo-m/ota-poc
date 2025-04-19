@@ -91,6 +91,10 @@ jobs:
           SOURCE_BRANCH="${{ steps.check_release_branch.outputs.source_branch }}"
           RELEASE_BRANCH="${{ steps.check_release_branch.outputs.branch_name }}"
 
+          echo "Fetching branches..."
+          git fetch origin "$SOURCE_BRANCH"
+          git fetch origin "$RELEASE_BRANCH"
+
           echo "Getting commits unique to $SOURCE_BRANCH..."
           COMMITS=$(git rev-list --reverse origin/$RELEASE_BRANCH..origin/$SOURCE_BRANCH)
 
