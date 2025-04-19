@@ -89,7 +89,7 @@ jobs:
         if: steps.check_label.outputs.matched == 'true' && steps.check_release_branch.outputs.branch_exists == 'true'
         run: |
           SOURCE_BRANCH="${{ steps.check_release_branch.outputs.source_branch }}"
-          BRANCH_NAME="${{ steps.check_release_branch.outputs.branch_name }}"
+          RELEASE_BRANCH="${{ steps.check_release_branch.outputs.branch_name }}"
 
           echo "Getting commits unique to $SOURCE_BRANCH..."
           COMMITS=$(git rev-list --reverse origin/$RELEASE_BRANCH..origin/$SOURCE_BRANCH)
