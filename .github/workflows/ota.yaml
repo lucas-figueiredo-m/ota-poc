@@ -58,15 +58,15 @@ jobs:
           CLEAN_GENERIC_VERSION=${{ steps.check_label.outputs.clean_generic_version }}
           BRANCH_NAME="release/$CLEAN_GENERIC_VERSION"
           echo "Checking if branch $BRANCH_NAME exists..."
-          git fetch origin $BRANCH_NAME
-          git rev-parse --verify --quiet $BRANCH_NAME
-          if [ $? -ne 0 ]; then
-            echo "Branch $BRANCH_NAME does not exist"
-            echo "branch_exists=false" >> $GITHUB_OUTPUT
-          else
+          git fetch origin $BRANCH_NAME || true
+
+          if git rev-parse --verify --quiet origin/$BRANCH_NAME; then
             echo "Branch $BRANCH_NAME exists"
             echo "branch_exists=true" >> $GITHUB_OUTPUT
             echo "branch_name=$BRANCH_NAME" >> $GITHUB_OUTPUT
+          else
+            echo "Branch $BRANCH_NAME does not exist"
+            echo "branch_exists=false" >> $GITHUB_OUTPUT
           fi
 
       - name: Run your hotfix workflow
