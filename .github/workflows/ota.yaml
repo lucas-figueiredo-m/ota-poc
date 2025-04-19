@@ -17,12 +17,12 @@ jobs:
           MATCHED=false
           MATCHED_VERSION=
 
-          echo "All labels: ${{ toJson(github.event.pull_request.labels) }}"
+          labels=$(echo '${{ toJson(github.event.pull_request.labels) }}' | jq -r '.[].name')
+          echo "Labels: $labels"
 
-          for label in "${{ toJson(github.event.pull_request.labels) }}" ; do
-            echo "Label: $label"
-            name=$(echo "$label" | jq -r '.name')
-            if [[ $name =~ $HOTFIX_LABEL_REGEX ]]; then
+          for name in $labels; do
+            echo "Label name: $name"
+            if [[ "$name" =~ $HOTFIX_LABEL_REGEX ]]; then
               MATCHED=true
               MATCHED_VERSION=$name
               break
