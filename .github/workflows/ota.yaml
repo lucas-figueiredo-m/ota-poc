@@ -90,6 +90,8 @@ jobs:
 
       - name: Cherry-pick commits from ${{ steps.check_release_branch.outputs.source_branch }} into ${{ steps.check_release_branch.outputs.branch_name }}
         if: steps.check_label.outputs.matched == 'true' && steps.check_release_branch.outputs.branch_exists == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           SOURCE_BRANCH="${{ steps.check_release_branch.outputs.source_branch }}"
           RELEASE_BRANCH="${{ steps.check_release_branch.outputs.branch_name }}"
