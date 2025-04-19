@@ -95,6 +95,9 @@ jobs:
           git fetch origin "$SOURCE_BRANCH"
           git fetch origin "$RELEASE_BRANCH"
 
+          git config user.name "${{ github.actor }}"
+          git config user.email "${{ github.actor_id }}+${{ github.actor }}@users.noreply.github.com"
+
           echo "Getting commits unique to $SOURCE_BRANCH..."
           COMMITS=$(git rev-list --reverse origin/$RELEASE_BRANCH..origin/$SOURCE_BRANCH)
 
