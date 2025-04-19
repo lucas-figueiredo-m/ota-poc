@@ -17,6 +17,8 @@ jobs:
           MATCHED=false
           MATCHED_VERSION=
 
+          echo "All labels: ${{ toJson(github.event.pull_request.labels) }}"
+
           for label in "${{ toJson(github.event.pull_request.labels) }}" ; do
             echo "Label: $label"
             name=$(echo "$label" | jq -r '.name')
