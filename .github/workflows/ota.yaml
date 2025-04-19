@@ -41,6 +41,11 @@ jobs:
       - name: Check if corresponding release branch exists
         if: steps.check_label.outputs.matched == 'true'
         run: |
+          echo "GENERIC VERSION: ${steps.check_label.outputs.clean_generic_version}"
+          echo "VERSION: ${steps.check_label.outputs.clean_version}"
+          echo "LABEL NAME: ${steps.check_label.outputs.matched_version}"
+          echo "matched: ${steps.check_label.outputs.matched}"
+
           CLEAN_GENERIC_VERSION=${{ steps.check_label.outputs.clean_generic_version }}
           BRANCH_NAME="release/$CLEAN_GENERIC_VERSION"
           echo "Checking if branch $BRANCH_NAME exists..."
