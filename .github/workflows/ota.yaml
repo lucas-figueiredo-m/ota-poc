@@ -48,6 +48,7 @@ jobs:
           echo "clean_generic_version=$CLEAN_GENERIC_VERSION" >> $GITHUB_OUTPUT
 
       - name: Check if corresponding release branch exists
+        id: check_release_branch
         if: steps.check_label.outputs.matched == 'true'
         run: |
           echo "GENERIC VERSION: ${{ steps.check_label.outputs.clean_generic_version }}"
@@ -75,7 +76,7 @@ jobs:
           fi
 
       - name: Fetch and checkout release branch
-        if: steps.check_label.outputs.matched == 'true'
+        if: steps.check_label.outputs.matched == 'true' && steps.check_label.outputs.branch_exists == 'true'
         run: |
           RELEASE_BRANCH="${{ steps.check_label.outputs.branch_name }}"
 
