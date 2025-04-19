@@ -16,6 +16,8 @@ jobs:
           HOTFIX_LABEL_REGEX="^v[0-9]+\.[0-9]+\.[0-9]+-hotfix\.[0-9]+$"
           MATCHED=false
           MATCHED_VERSION=
+          CLEAN_VERSION=
+          CLEAN_GENERIC_VERSION=
 
           labels=$(echo '${{ toJson(github.event.pull_request.labels) }}' | jq -r '.[].name')
           echo "Labels: $labels"
@@ -25,14 +27,35 @@ jobs:
             if [[ "$name" =~ $HOTFIX_LABEL_REGEX ]]; then
               MATCHED=true
               MATCHED_VERSION=$name
+              CLEAN_VERSION=$(echo "$label_name" | sed -E 's/^v([0-9]+\.[0-9]+\.[0-9]+)-hotfix\.[0-9]+$/\1/')
+              CLEAN_GENERIC_VERSION=$(echo "$version" | sed -E 's/([0-9]+\.[0-9]+)\.[0-9]+/\1.x/')
               break
             fi
           done
 
           echo "matched=$MATCHED" >> $GITHUB_OUTPUT
           echo "matched_version=$MATCHED_VERSION" >> $GITHUB_OUTPUT
-      - name: Run your hotfix workflow
+          echo "clean_version=$CLEAN_VERSION" >> $GITHUB_OUTPUT
+          echo "clean_generic_version=$CLEAN_GENERIC_VERSION" >> $GITHUB_OUTPUT
+
+      - name: Check if corresponding release branch exists
         if: steps.check_label.outputs.matched == 'true'
+        run: |
+          BRANCH_NAME="release/$CLEAN_GENERIC_VERSION"
+          echo "Checking if branch $BRANCH_NAME exists..."
+          git fetch origin $BRANCH_NAME
+          git rev-parse --verify --quiet $BRANCH_NAME
+          if [ $? -ne 0 ]; then
+            echo "Branch $BRANCH_NAME does not exist"
+            echo "branch_exists=false" >> $GITHUB_OUTPUT
+          else
+            echo "Branch $BRANCH_NAME exists"
+            echo "branch_exists=true" >> $GITHUB_OUTPUT
+            echo "branch_name=$BRANCH_NAME" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Run your hotfix workflow
+        if: steps.check_label.outputs.matched == 'true' && steps.check_label.outputs.branch_exists == 'true'
         run: |
           echo "🔥 Hotfix label matched! Run your tasks here..."
           echo "matched_version=${{ steps.check_label.outputs.matched_version }}" >> $GITHUB_OUTPUT
