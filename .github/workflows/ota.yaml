@@ -55,6 +55,8 @@ jobs:
           echo "LABEL NAME: ${{ steps.check_label.outputs.matched_version }}"
           echo "matched: ${{ steps.check_label.outputs.matched }}"
 
+          SOURCE_BRANCH="${{ github.event.pull_request.head.ref }}"
+
           CLEAN_GENERIC_VERSION=${{ steps.check_label.outputs.clean_generic_version }}
           BRANCH_NAME="release/$CLEAN_GENERIC_VERSION"
           echo "Checking if branch $BRANCH_NAME exists..."
@@ -64,13 +66,51 @@ jobs:
             echo "Branch $BRANCH_NAME exists"
             echo "branch_exists=true" >> $GITHUB_OUTPUT
             echo "branch_name=$BRANCH_NAME" >> $GITHUB_OUTPUT
+            echo "source_branch=$SOURCE_BRANCH" >> $GITHUB_OUTPUT
           else
             echo "Branch $BRANCH_NAME does not exist"
             echo "branch_exists=false" >> $GITHUB_OUTPUT
           fi
 
-      - name: Run your hotfix workflow
+      - name: Fetch and checkout release branch
         if: steps.check_label.outputs.matched == 'true' && steps.check_label.outputs.branch_exists == 'true'
         run: |
-          echo "🔥 Hotfix label matched! Run your tasks here..."
-          echo "matched_version=${{ steps.check_label.outputs.matched_version }}" >> $GITHUB_OUTPUT
+          RELEASE_BRANCH=${{ steps.check_label.outputs.branch_name }}
+          git fetch origin "$RELEASE_BRANCH"
+          git checkout "$RELEASE_BRANCH"
+
+      - name: Cherry-pick commits from ${{ steps.check_label.outputs.source_branch }} into ${{ steps.check_label.outputs.branch_name }}
+        if: steps.check_label.outputs.matched == 'true' && steps.check_label.outputs.branch_exists == 'true'
+        run: |
+          SOURCE_BRANCH=${{ steps.check_label.outputs.source_branch }}
+          BRANCH_NAME=${{ steps.check_label.outputs.branch_name }}
+
+           echo "Getting commits unique to $SOURCE_BRANCH..."
+          COMMITS=$(git rev-list --reverse origin/$RELEASE_BRANCH..origin/$SOURCE_BRANCH)
+
+          if [[ -z "$COMMITS" ]]; then
+            echo "✅ No new commits to cherry-pick."
+            exit 0
+          fi
+
+          echo -e "\n🧾 Commits to cherry-pick into $RELEASE_BRANCH:\n"
+          printf "| %-10s | %-50s |\n" "SHA" "Message"
+          printf "|%-12s|%-52s|\n" "------------" "----------------------------------------------------"
+
+          for commit in $COMMITS; do
+            git cherry-pick "$commit" || {
+              echo "❌ Conflict while cherry-picking $commit. Aborting."
+              exit 1
+            }
+
+            short_sha=$(git rev-parse --short $commit)
+            message=$(git log --format=%s -n 1 $commit | cut -c1-50)
+            printf "| %-10s | %-50s |\n" "$short_sha" "$message"
+          done
+
+          git push origin "$RELEASE_BRANCH"
+
+      - name: Run CircleCI workflow
+        if: steps.check_label.outputs.matched == 'true' && steps.check_label.outputs.branch_exists == 'true'
+        run: |
+          echo "🔥 Running CircleCI workflow"
